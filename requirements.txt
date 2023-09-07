@@ -1,0 +1,4 @@
+openai-whisper
+poe-api
+pytube
+pyyaml
