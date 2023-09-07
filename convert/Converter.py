@@ -5,6 +5,7 @@ class Converter:
         self.path = config.content
         self.config = config
         self.localPath = None
+        self.text = None
 
     def download(self):
         # Create temporary download directory
@@ -32,12 +33,10 @@ class Converter:
 
     def convert(self):
         # Placeholder implementation
-        print("Converting video...")
         self._convert()
 
     def process(self):
         # Placeholder implementation
-        print("Processing video...")
         self._process()
 
     def _download(self):

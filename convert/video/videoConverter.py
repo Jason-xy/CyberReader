@@ -1,7 +1,6 @@
 from convert.Converter import Converter
 from pytube import YouTube
 from enum import Enum
-from pprint import pprint
 import os
 import whisper
 
@@ -74,7 +73,7 @@ class videoConverter(Converter):
             video.download(self.config.tmpDir)
 
             # Full path to the downloaded video
-            self.localPath = os.path.join(self.config.tmpDir, filename)
+            self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
 
         except Exception as e:
             raise YouTubeDownloadError(f"Error downloading from YouTube: {str(e)}")
@@ -105,7 +104,10 @@ class videoConverter(Converter):
         print("Using model:", model_name)
         model = whisper.load_model(model_name)
         result = model.transcribe(self.localPath)
-        pprint(result)
+        self.text = result['text']
+
+        with open(self.localPath + '.txt', 'w') as file:
+            file.write(self.text)
 
     def convert(self):
         try:
