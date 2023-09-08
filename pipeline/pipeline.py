@@ -4,18 +4,27 @@ class pipeline:
     def __init__(self, config):
         self.config = config
         self.model = config.model
+        self.convertHandler = None
+
+    def typeSelector(self):
+        pass
+
+    def textProcessor(self):
+        pass
+
+    def audioProcessor(self):
+        pass
+
+    def videoProcessor(self):
+        self.convertHandler = videoConverter(self.config).process()
 
     def _process_poe(self):
         from LLMs.poe.poe import poeHandler
-        videoHandler = videoConverter(self.config)
-        videoHandler.process()
-        poeHandler(self.config, videoHandler.text).sendMessage()
+        poeHandler(self.config, self.convertHandler.text).sendMessage()
 
     def _process_chatgpt(self):
         from LLMs.chatgpt.chatgpt import chatgptHandler
-        videoHandler = videoConverter(self.config)
-        videoHandler.process()
-        chatgptHandler(self.config, videoHandler.text).sendMessage()
+        chatgptHandler(self.config, self.convertHandler.text).sendMessage()
 
     def process(self):
         if self.model == "poe":
