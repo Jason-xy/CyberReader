@@ -1,8 +1,13 @@
 from convert.Converter import Converter
+from bilix.sites.bilibili import DownloaderBilibili
+from bilix.progress.cli_progress import CLIProgress
 from pytube import YouTube
 from enum import Enum
-import os
+from tqdm import tqdm
+import asyncio
+import requests
 import whisper
+import os
 
 class videoPathType(Enum):
     YouTube = 0
@@ -49,16 +54,26 @@ class videoConverter(Converter):
             totalSize = stream.filesize
             bytesDownloaded = totalSize - bytesRemaining
             percentageOfCompletion = bytesDownloaded / totalSize * 100
-            print(str(percentageOfCompletion) + "% downloaded")
+            progress_bar.update(percentageOfCompletion)
+
         try:
             # Create a YouTube object
             yt = YouTube(self.path)
 
+            # Register the progress callback function
+            yt.register_on_progress_callback(on_progress)
+
             # Select the video to download
             video = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
-            yt.register_on_progress_callback(on_progress)
+
+            # Initialize the total file size for the progress bar
+            totalSize = video.filesize
+
+            # Initialize the progress bar
+            progress_bar = tqdm(total=totalSize, unit='B', unit_scale=True)
+
             print(f"Fetching \"{video.title}\"..")
-            print(f"Fetching successful\n")
+            print("Fetching successful\n")
             print(f"Information: \n"
                 f"File size: {round(video.filesize * 0.000001, 2)} MegaBytes\n"
                 f"Highest Resolution: {video.resolution}\n"
@@ -75,20 +90,43 @@ class videoConverter(Converter):
             # Full path to the downloaded video
             self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
 
+            # Close the progress bar
+            progress_bar.close()
+
         except Exception as e:
             raise YouTubeDownloadError(f"Error downloading from YouTube: {str(e)}")
 
     def downloadFromBilibili(self):
+        async def biliDownload():
+            async with DownloaderBilibili() as d:
+                await d.get_video(self.path, self.config.tmpDir, only_audio=True)
         try:
-            # Download logic
-            pass
+            CLIProgress.start()
+            asyncio.run(biliDownload())
+
+            # TODO:How to get the filename?
+            # Workaround: get the filename from directory
+            filename = os.listdir(self.config.tmpDir)[0]
+            self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
         except Exception as e:
             raise BilibiliDownloadError(f"Error downloading from Bilibili: {str(e)}")
 
     def downloadFromUrl(self):
         try:
-            # Download logic
-            pass
+            response = requests.get(self.path, stream=True)
+            filename = self.path.split('/')[-1]
+            self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
+            if response.status_code == requests.codes.ok:
+                total_size = int(response.headers.get('Content-Length', 0))
+                block_size = 1024  # 1 KB
+                progress_bar = tqdm(total=total_size, unit='B', unit_scale=True)
+
+                with open(self.localPath, 'wb') as file:
+                    for data in response.iter_content(block_size):
+                        file.write(data)
+                        progress_bar.update(len(data))
+                progress_bar.close()
+
         except Exception as e:
             raise UrlDownloadError(f"Error downloading from URL: {str(e)}")
 
@@ -99,15 +137,12 @@ class videoConverter(Converter):
             print(f"An error occurred during download: {str(e)}")
 
     def _convert(self):
-        model_name = "base"
+        model_name = "base" # {tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large-v1,large-v2,large}]
         print("Transcribing...", self.localPath)
         print("Using model:", model_name)
         model = whisper.load_model(model_name)
         result = model.transcribe(self.localPath)
         self.text = result['text']
-
-        with open(self.localPath + '.txt', 'w') as file:
-            file.write(self.text)
 
     def convert(self):
         try:

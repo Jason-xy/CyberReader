@@ -6,6 +6,7 @@ class LLMs:
         self.model = config.model
         self.token = config.token
         self.text = text
+        self.summary = None
 
     def _sendMessage(self):
         # Subclasses should override this method
