@@ -51,9 +51,9 @@ class pipeline:
         self.convertHandler.process()
 
         # find out the type of the model
-        if self.model == "poe":
+        if "poe" in self.model:
             self._process_poe()
-        elif self.model == "gpt-3.5-turbo":
+        elif "gpt" in self.model:
             self._process_chatgpt()
 
         # send the text to the model

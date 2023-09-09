@@ -1,7 +1,10 @@
 from convert.Converter import Converter
+from bilix.sites.bilibili import DownloaderBilibili
+from bilix.progress.cli_progress import CLIProgress
 from pytube import YouTube
 from enum import Enum
 from tqdm import tqdm
+import asyncio
 import requests
 import whisper
 import os
@@ -94,9 +97,17 @@ class videoConverter(Converter):
             raise YouTubeDownloadError(f"Error downloading from YouTube: {str(e)}")
 
     def downloadFromBilibili(self):
+        async def biliDownload():
+            async with DownloaderBilibili() as d:
+                await d.get_video(self.path, self.config.tmpDir, only_audio=True)
         try:
-            # Download logic
-            pass
+            CLIProgress.start()
+            asyncio.run(biliDownload())
+
+            # TODO:How to get the filename?
+            # Workaround: get the filename from directory
+            filename = os.listdir(self.config.tmpDir)[0]
+            self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
         except Exception as e:
             raise BilibiliDownloadError(f"Error downloading from Bilibili: {str(e)}")
 
@@ -126,7 +137,7 @@ class videoConverter(Converter):
             print(f"An error occurred during download: {str(e)}")
 
     def _convert(self):
-        model_name = "small"
+        model_name = "base" # {tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large-v1,large-v2,large}]
         print("Transcribing...", self.localPath)
         print("Using model:", model_name)
         model = whisper.load_model(model_name)

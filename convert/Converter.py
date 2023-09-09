@@ -1,3 +1,4 @@
+import shutil
 import os
 
 class Converter:
@@ -26,7 +27,7 @@ class Converter:
             print(f"An error occurred during download: {str(e)}")
             # Clean up the temporary download directory
             if os.path.exists(temp_dir):
-                os.rmdir(temp_dir)
+                shutil.rmtree(temp_dir)
 
         finally:
             pass

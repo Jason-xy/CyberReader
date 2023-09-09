@@ -1,0 +1,93 @@
+name: CyberReader Summarization Auto Test
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - config/*
+      - convert/*
+      - LLMs/*
+      - pipeline/*
+      - main.py
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - config/*
+      - convert/*
+      - LLMs/*
+      - pipeline/*
+      - main.py
+
+jobs:
+  YouTube:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Generate config.yaml
+        run: |
+          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.youtube.com/watch?v=nrvnpFCcZeA
+      - name: Summariz YouTube Video
+        run: |
+          python main.py
+      - name: Upload result to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: result
+          path: result
+
+  Bilibili:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Generate config.yaml
+        run: |
+          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.bilibili.com/video/BV1Fm4y1T7Vp/?spm_id_from=333.337.search-card.all.click&vd_source=0c10070ae0b78027463ca8a677500c0d
+      - name: Summariz Bilibili Video
+        run: |
+          python main.py
+      - name: Upload result to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: result
+          path: result
+
+  VideoUrl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Generate config.yaml
+        run: |
+          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://streaming.cle.ust.hk/media/RPG-common-curriculum/Unit-1-foundation/1-1-Welcome.mp4
+      - name: Summariz Video Url
+        run: |
+          python main.py
+      - name: Upload result to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: result
+          path: result
