@@ -45,31 +45,6 @@ jobs:
           name: result
           path: result
 
-  Bilibili:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: Install dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Generate config.yaml
-        run: |
-          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.bilibili.com/video/BV1v34y1j7Nu/?spm_id_from=333.337.search-card.all.click&vd_source=0c10070ae0b78027463ca8a677500c0d
-      - name: Summariz Bilibili Video
-        run: |
-          python main.py
-      - name: Upload result to GitHub
-        uses: actions/upload-artifact@v2
-        with:
-          name: result
-          path: result
-
   VideoUrl:
     runs-on: ubuntu-latest
     steps:

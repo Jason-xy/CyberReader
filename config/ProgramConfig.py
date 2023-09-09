@@ -3,7 +3,7 @@ import yaml
 
 class ProgramConfig:
     def __init__(self, yamlPath):
-        self.startTime = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H:%M:%S")
+        self.startTime = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
         self.yamlPath = yamlPath
         self.config = None
         self.token = None
