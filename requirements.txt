@@ -3,3 +3,6 @@ openai
 poe-api
 pytube
 pyyaml
+requests
+datetime
+tdqm

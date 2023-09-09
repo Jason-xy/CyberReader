@@ -14,7 +14,7 @@ class chatgptHandler(LLMs):
                 {"role": "user", "content": message}
             ]
         )
-        print(completion.choices[0].message.content)
+        self.summary = completion.choices[0].message.content
 
     def sendMessage(self):
         try:
