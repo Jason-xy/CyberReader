@@ -114,7 +114,7 @@ class videoConverter(Converter):
     def downloadFromUrl(self):
         try:
             response = requests.get(self.path, stream=True)
-            filename = self.path.split('/')[-1]
+            filename = 'video'
             self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
             if response.status_code == requests.codes.ok:
                 total_size = int(response.headers.get('Content-Length', 0))
