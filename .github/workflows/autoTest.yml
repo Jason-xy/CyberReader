@@ -4,22 +4,16 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - .github/workflows/autoTest.yml
-      - config/*
-      - convert/*
-      - LLMs/*
-      - pipeline/*
-      - main.py
+      - '.github/workflows/autoTest.yml'
+      - '**/*.py'
+      - 'main.py'
 
   pull_request:
     branches: [ "main" ]
     paths:
-      - .github/workflows/autoTest.yml
-      - config/*
-      - convert/*
-      - LLMs/*
-      - pipeline/*
-      - main.py
+      - '.github/workflows/autoTest.yml'
+      - '**/*.py'
+      - 'main.py'
 
 jobs:
   YouTube:
