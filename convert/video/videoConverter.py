@@ -7,6 +7,7 @@ from tqdm import tqdm
 import asyncio
 import requests
 import whisper
+import subprocess
 import os
 
 class videoPathType(Enum):
@@ -113,19 +114,24 @@ class videoConverter(Converter):
 
     def downloadFromUrl(self):
         try:
-            response = requests.get(self.path, stream=True)
-            filename = self.path.split('/')[-1]
-            self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
-            if response.status_code == requests.codes.ok:
-                total_size = int(response.headers.get('Content-Length', 0))
-                block_size = 1024  # 1 KB
-                progress_bar = tqdm(total=total_size, unit='B', unit_scale=True)
+            if self.path.endswith('.m3u8'):
+                filename = self.path.split('/')[-1].replace('.m3u8', '.mp4')
+                self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
+                downloadAndConvertToMp4(self.path, self.localPath, os.path.abspath(self.config.tmpDir))
+            else:
+                response = requests.get(self.path, stream=True)
+                filename = self.path.split('/')[-1]
+                self.localPath = os.path.join(os.path.abspath(self.config.tmpDir), filename)
+                if response.status_code == requests.codes.ok:
+                    total_size = int(response.headers.get('Content-Length', 0))
+                    block_size = 1024  # 1 KB
+                    progress_bar = tqdm(total=total_size, unit='B', unit_scale=True)
 
-                with open(self.localPath, 'wb') as file:
-                    for data in response.iter_content(block_size):
-                        file.write(data)
-                        progress_bar.update(len(data))
-                progress_bar.close()
+                    with open(self.localPath, 'wb') as file:
+                        for data in response.iter_content(block_size):
+                            file.write(data)
+                            progress_bar.update(len(data))
+                    progress_bar.close()
 
         except Exception as e:
             raise UrlDownloadError(f"Error downloading from URL: {str(e)}")
@@ -160,6 +166,39 @@ class videoConverter(Converter):
             super().process()
         except VideoConverterError as e:
             print(f"An error occurred during processing: {str(e)}")
+
+# m3u8 functions
+def downloadTsFiles(url, tmpDir):
+    response = requests.get(url)
+    response.raise_for_status()
+    m3u8Content = response.text
+
+    tsFiles = []
+    lines = m3u8Content.split('\n')
+    for line in lines:
+        if line.endswith('.ts'):
+            tsFiles.append(line)
+
+    for i, tsFile in tqdm(enumerate(tsFiles), desc="Downloading files", total=len(tsFiles)):
+        tsUrl = url.rsplit('/', 1)[0] + '/' + tsFile
+        response = requests.get(tsUrl)
+        response.raise_for_status()
+        with open(os.path.join(tmpDir, f'temp_{i}.ts'), 'wb') as file:
+            file.write(response.content)
+
+    return tsFiles
+
+def concatenateTsFiles(tsFiles, outputFile, tmpDir):
+    with open(os.path.join(tmpDir, 'concatList.txt'), 'w') as f:
+        for i in range(len(tsFiles)):
+            f.write(f"file '{os.path.join(tmpDir, f'temp_{i}.ts')}'\n")
+    cmd = f'ffmpeg -f concat -safe 0 -i "{os.path.join(tmpDir, "concatList.txt")}" -c copy {outputFile}'
+    subprocess.call(cmd, shell=True)
+
+def downloadAndConvertToMp4(url, outputFile, tmpDir):
+    tsFiles = downloadTsFiles(url, tmpDir)
+    concatenateTsFiles(tsFiles, outputFile, tmpDir)
+    print('Video download and conversion completed!')
 
 # Error handling
 class DownloadError(Exception):
