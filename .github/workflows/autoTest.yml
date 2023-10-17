@@ -34,7 +34,7 @@ jobs:
           python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.youtube.com/watch?v=nrvnpFCcZeA
       - name: Summariz YouTube Video
         run: |
-          python main.py
+          python main.py --auto_test
       - name: Upload result to GitHub
         uses: actions/upload-artifact@v2
         with:
@@ -59,7 +59,7 @@ jobs:
           python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://streaming.cle.ust.hk/media/RPG-common-curriculum/Unit-1-foundation/1-1-Welcome.mp4
       - name: Summariz Video Url
         run: |
-          python main.py
+          python main.py --auto_test
       - name: Upload result to GitHub
         uses: actions/upload-artifact@v2
         with:
@@ -84,7 +84,7 @@ jobs:
           python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://1500023114.vod-qcloud.com/183bcc5avodtranshk1500023114/8e2a75dc5576678021889436837/video_1446006_0.m3u8
       - name: Summariz m3u8 Video Url
         run: |
-          python main.py
+          python main.py --auto_test
       - name: Upload result to GitHub
         uses: actions/upload-artifact@v2
         with:
