@@ -17,7 +17,13 @@ class chatgptHandler(LLMs):
         self.summary = completion.choices[0].message.content
 
     def sendMessage(self):
-        try:
-            super().sendMessage()
-        except Exception as e:
-            print(f"An error occurred during sendMessage: {str(e)}")
+        # try 3 times
+        for i in range(3):
+            try:
+                self._sendMessage()
+                break
+            except Exception as e:
+                print(f"An error occurred during sendMessage: {str(e)}, retrying {i+1} times ...")
+                continue
+        else:
+            raise Exception("An error occurred during sendMessage")
