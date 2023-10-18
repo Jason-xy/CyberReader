@@ -8,7 +8,24 @@ import asyncio
 import requests
 import whisper
 import subprocess
+import sys
 import os
+
+class _CustomProgressBar(tqdm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._current = self.n  # Set the initial value
+        self.process_bar = tqdm(total=self.total, unit='B', unit_scale=True)
+
+    def update(self, n):
+        super().update(n)
+        self._current += n
+        self.process_bar.update(self._current - self.process_bar.n)
+
+# Inject into tqdm.tqdm of Whisper, so we can see progress
+import whisper.transcribe
+transcribe_module = sys.modules['whisper.transcribe']
+transcribe_module.tqdm.tqdm = _CustomProgressBar
 
 class videoPathType(Enum):
     YouTube = 0
@@ -54,8 +71,7 @@ class videoConverter(Converter):
         def on_progress(stream, chunk, bytesRemaining):
             totalSize = stream.filesize
             bytesDownloaded = totalSize - bytesRemaining
-            percentageOfCompletion = bytesDownloaded / totalSize * 100
-            progress_bar.update(percentageOfCompletion)
+            progress_bar.update(bytesDownloaded - progress_bar.n)
 
         try:
             # Create a YouTube object
@@ -147,7 +163,7 @@ class videoConverter(Converter):
         print("Transcribing...", self.localPath)
         print("Using model:", model_name)
         model = whisper.load_model(model_name)
-        result = model.transcribe(self.localPath)
+        result = model.transcribe(self.localPath, fp16=False, word_timestamps = True)
         self.text = result['text']
 
     def convert(self):
