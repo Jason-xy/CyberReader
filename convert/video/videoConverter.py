@@ -4,6 +4,7 @@ from bilix.progress.cli_progress import CLIProgress
 from pytube import YouTube
 from enum import Enum
 from tqdm import tqdm
+import torch
 import asyncio
 import requests
 import whisper
@@ -159,11 +160,18 @@ class videoConverter(Converter):
             print(f"An error occurred during download: {str(e)}")
 
     def _convert(self):
-        model_name = "base" # {tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large-v1,large-v2,large}]
+        if self.config.withGPU and torch.cuda.is_available():
+            withGPU = 'cuda'
+        else:
+            withGPU = None
+        modelName = self.config.whisperModel
+        inputLanguage = self.config.inputLaguage
         print("Transcribing...", self.localPath)
-        print("Using model:", model_name)
-        model = whisper.load_model(model_name)
-        result = model.transcribe(self.localPath, fp16=False, word_timestamps = True)
+        print("Using model: ", modelName)
+        print("Input language: ", inputLanguage)
+        print("Using GPU: ", withGPU if withGPU else 'False')
+        model = whisper.load_model(modelName, device=withGPU)
+        result = model.transcribe(self.localPath, language=inputLanguage, fp16=False, word_timestamps=True)
         self.text = result['text']
 
     def convert(self):

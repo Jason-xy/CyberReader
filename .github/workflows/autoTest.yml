@@ -31,7 +31,7 @@ jobs:
           pip install -r requirements.txt
       - name: Generate config.yaml
         run: |
-          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.youtube.com/watch?v=nrvnpFCcZeA
+          python test/gen_config.py gpt-3.5-turbo-16k ${{ secrets.OPENAI_API_KEY }} tmp result https://www.youtube.com/watch?v=NIDs4lLYCLI
       - name: Summariz YouTube Video
         run: |
           python main.py --auto_test
