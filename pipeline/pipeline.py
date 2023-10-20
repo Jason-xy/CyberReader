@@ -1,4 +1,5 @@
 from convert.video.videoConverter import videoConverter
+import datetime
 import shutil
 import os
 
@@ -44,6 +45,7 @@ class pipeline:
             shutil.rmtree(self.config.tmpDir)
 
     def process(self):
+        self.config.startTime = datetime.datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S")
         # find out the type of the input
         self.videoProcessor()
 

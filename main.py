@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from config.ProgramConfig import ProgramConfig
 from pipeline.pipeline import pipeline
-from gui.GUI import GUI
+from gui.MainGUI import MainGUI
 import argparse
 import sys
 import os
@@ -23,7 +23,7 @@ def main(argv):
     else:
         config = ProgramConfig(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml'))
         pipe = pipeline(config)
-        gui = GUI(pipe)
+        gui = MainGUI(pipe)
         gui.run()
 
 if __name__ == "__main__":
